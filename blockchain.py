@@ -59,11 +59,12 @@ class Blockchain:
 
         :param block: Block
         """
-        pass
+        block_string = json.dumps(block, sort_keys=True).encode()
+        return hashlib.sha256(block_string).hexdigest()
 
     @property
     def last_block(self):
         """
         Returns the last Block in the chain
         """
-        pass
+        return self.chain[-1]
