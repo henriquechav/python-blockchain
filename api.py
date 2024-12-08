@@ -1,6 +1,7 @@
 from blockchain import Blockchain
 from flask import Flask, jsonify, request
 from uuid import uuid4
+import time
 
 app = Flask(__name__)
 
@@ -13,8 +14,12 @@ blockchain = Blockchain()
 @app.route('/mine', methods=['GET'])
 def mine():
     # We run the proof of work algorithm to get the next proof...
+    # and count the elapsed time
     last_block = blockchain.last_block
+    start = time.time()
     proof = blockchain.proof_of_work(last_block)
+    end = time.time()
+    elapsed = end - start
 
     # We must receive a reward for finding the proof.
     # The sender is "0" to signify that this node has mined a new coin.
@@ -34,6 +39,7 @@ def mine():
         'transactions': block['transactions'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
+        'time': f"It has taken {elapsed} seconds to mine this block.",
     }
     return jsonify(response), 200
 
