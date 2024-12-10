@@ -1,7 +1,6 @@
-# Based on Medium article available at https://bimoputro.medium.com/build-your-own-blockchain-in-python-a-practical-guide-f9620327ed03
+from time import time
 import hashlib
 import json
-from time import time
 import requests
 
 class Blockchain:
