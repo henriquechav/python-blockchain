@@ -5,41 +5,41 @@ import time
 
 app = Flask(__name__)
 
-# Generate a globally unique address for this node 
+# Gera um endereço globalmente único para este nó 
 node_identifier = str(uuid4()).replace('-', '')
 
-# Instantiate the Blockchain
+# Instancia a blockchain
 blockchain = Blockchain()
 
 @app.route('/mine', methods=['GET'])
 def mine():
-    # We run the proof of work algorithm to get the next proof...
-    # and count the elapsed time
+    # Executamos o algoritmo de prova de trabalho para pegar a próxima prova...
+    # e contamos o tempo decorrido
     last_block = blockchain.last_block
     start = time.time()
     proof = blockchain.proof_of_work(last_block)
     end = time.time()
     elapsed = end - start
 
-    # We must receive a reward for finding the proof.
-    # The sender is "0" to signify that this node has mined a new coin.
+    # Devemos receber uma recompensa por encontrar a prova.
+    # O pagador é "0" para indicar que este nó minerou uma nova moeda.
     blockchain.new_transaction(
         sender="0",
         recipient=node_identifier,
         amount=1,
     )
 
-    # Forge the new Block by adding it to the chain
+    # Forja um novo bloco e o adiciona na cadeia
     previous_hash = blockchain.hash(last_block)
     block = blockchain.new_block(proof, previous_hash)
 
     response = {
-        'message': "New Block Forged",
+        'message': "Novo bloco forjado",
         'index': block['index'],
         'transactions': block['transactions'],
         'proof': block['proof'],
         'previous_hash': block['previous_hash'],
-        'time': f"It has taken {elapsed} seconds to mine this block.",
+        'time': f"Levou {elapsed} segundos para minerar este bloco.",
     }
     return jsonify(response), 200
 
@@ -47,15 +47,15 @@ def mine():
 def new_transaction():
     values = request.get_json()
 
-    # Check that the required fields are in the posted data
+    # Checa se os campos requeridos estão nos dados enviados
     required = ['sender', 'recipient', 'amount']
     if not all(k in values for k in required):
         return 'Missing values', 400
     
-    # Create a new Transaction
+    # Cria uma nova transação
     index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
 
-    response = {'message': f'Transaction will be added to Block {index}'}
+    response = {'message': f'A transação será adicionada ao bloco {index}'}
     return jsonify(response), 200
 
 @app.route('/chain', methods=['GET'])
@@ -64,40 +64,6 @@ def full_chain():
         'chain': blockchain.chain,
         'length': len(blockchain.chain),
     }
-    return jsonify(response), 200
-
-@app.route('/nodes/register', methods=['POST'])
-def register_nodes():
-    values = request.get_json()
-
-    nodes = values.get('nodes')
-    if nodes is None:
-        return "Error: Please supply a valid list of nodes", 400
-    
-    for node in nodes:
-        blockchain.register_node(node)
-
-    response = {
-        'message': 'New nodes have been added',
-        'total_nodes': list(blockchain.nodes),
-    }
-    return jsonify(response), 201
-
-@app.route('/nodes/resolve', methods=['GET'])
-def consensus():
-    replaced = blockchain.resolve_conflicts()
-
-    if replaced:
-        response = {
-            'message': 'Our chain was replaced',
-            'new_chain': blockchain.chain,
-        }
-    else:
-        response = {
-            'message': 'Our chain is authoritative',
-            'chain': blockchain.chain
-        }
-
     return jsonify(response), 200
 
 if __name__ == '__main__':

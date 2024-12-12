@@ -1,24 +1,23 @@
 from time import time
 import hashlib
 import json
-import requests
 
 class Blockchain:
     def __init__(self):
         self.current_transactions = []
         self.chain = []
-        self.nodes = set()
+        # self.nodes = set()
 
-        # Create the genesis block
+        # Cria o bloco de gênese
         self.new_block(previous_hash=1, proof=100)
 
     def new_block(self, proof, previous_hash=None):
         """
-        Create a new block in blockchain
+        Cria um novo bloco na blockchain
 
-        :param proof: The proof given by the Proof of Work algorithm
-        :param previous_hash: Hash of previous Block
-        :return: New Block
+        :param proof: <int> A prova dada pelo algoritmo de prova de trabalho
+        :param previous_hash: <string> Hash do último bloco
+        :return: <dict> Novo bloco
         """
         block = {
             'index': len(self.chain) + 1,
@@ -28,7 +27,7 @@ class Blockchain:
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
         }
 
-        # Reset the current list of transactions
+        # Reseta a atual lista de transações
         self.current_transactions = []
 
         self.chain.append(block)
@@ -36,12 +35,12 @@ class Blockchain:
 
     def new_transaction(self, sender, recipient, amount):
         """
-        Creates a new transaction to go into the next mined Block
+        Cria uma nova transação para ir no próximo bloco minerado
 
-        :param sender: Address of the Sender
-        :param recipient: Address of the Recipient
-        :param amount: Amount
-        :return: The index of the Block that will hold this transaction
+        :param sender: <string> Endereço do pagador
+        :param recipient: <string> Endereço do recebedor
+        :param amount: <float> Valor
+        :return: <int> O índice do bloco que guardará esta transação
         """
         self.current_transactions.append({
             'sender': sender,
@@ -54,9 +53,10 @@ class Blockchain:
     @staticmethod
     def hash(block):
         """
-        Creates a SHA-256 hash of a Block
+        Cria um hash SHA-256 de um bloco
 
-        :param block: Block
+        :param block: <dict> Bloco
+        :return: <string> Hash
         """
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
@@ -64,18 +64,20 @@ class Blockchain:
     @property
     def last_block(self):
         """
-        Returns the last Block in the chain
+        Retorna o último bloco na cadeia
+
+        :return: <dict> Último bloco
         """
         return self.chain[-1]
     
     def proof_of_work(self, last_block):
         """
-        Bitcoin's SHA-256 mining algorithm:
-        - Find a number p' such that hash(pp') contains leading 4 zeroes, where p is the previous p'
-        - p is the previous proof, and p' is the new proof
+        Algoritmo SHA-256 de mineração do bitcoin:
+        - Encontra um número p' tal que o hash(pp') começa com 4 zeros, onde p é o p' anterior
+        - p é a prova anterior, e p' é a nova prova
         
-        :param last_block: <dict> last Block
-        :return: <int>
+        :param last_block: <dict> Último bloco
+        :return: <int> Prova
         """
         last_proof = last_block['proof']
         last_hash = self.hash(last_block)
@@ -89,73 +91,13 @@ class Blockchain:
     @staticmethod
     def valid_proof(last_proof, proof, last_hash):
         """
-        Validates the Proof
+        Valida a prova
 
-        :param last_proof: <int> Previous Proof
-        :param proof: <int> Current Proof
-        :param last_hash: <str> The hash of the Previous Block
-        :return: <bool> True if correct, False if not.
+        :param last_proof: <int> Prova anterior
+        :param proof: <int> Prova atual
+        :param last_hash: <str> O hash do bloco anterior
+        :return: <bool> True se correto, False se não.
         """
         guess = f'{last_proof}{proof}{last_hash}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
         return guess_hash[:4] == "0000"
-    
-    def valid_chain(self, chain):
-        """
-        Determine if a given blockchain is valid
-
-        :param chain: <list> A blockchain
-        :return: <bool> True if valid, False if not.
-        """
-        last_block = chain[0]
-        current_index = 1
-
-        while current_index < len(chain):
-            block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
-            # Check that the hash of the block is correct
-            if block['previous_hash'] != self.hash(last_block):
-                return False
-
-            # Check that the Proof of Work is correct
-            if not self.valid_proof(last_block['proof'], block['proof']):
-                return False
-            
-            last_block = block
-            current_index += 1
-
-        return True
-    
-    def resolve_conflicts(self):
-        """
-        This is our consensus algorithm, it resolves conflicts
-        by replacing our chain with the longest one in the network.
-
-        :return: <bool> True if our chain was replaced, False if not.
-        """
-        neighbours = self.nodes
-        new_chain = None
-
-        # We're only looking for chains longer than ours
-        max_length = len(self.chain)
-
-        # Grab and verify the chains from all the nodes in our network
-        for node in neighbours:
-            response = requests.get(f'http://{node}/chain')
-
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-
-                # Check if the length is longer and the chain is valid
-                if length > max_length and self.valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
-        
-        if new_chain:
-            self.chain = new_chain
-            return True
-        
-        return False
