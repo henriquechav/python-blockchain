@@ -16,8 +16,15 @@ def mine():
     # Executamos o algoritmo de prova de trabalho para pegar a próxima prova...
     # e contamos o tempo decorrido
     last_block = blockchain.last_block
+    
     start = time.time()
-    proof = blockchain.proof_of_work(last_block)
+
+    ### CASO HASHCASH ###
+    # proof = blockchain.proof_of_work(last_block)
+
+    ### CASO PRIMECOIN ###
+    proof = blockchain.proof_of_work()
+    
     end = time.time()
     elapsed = end - start
 
