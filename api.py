@@ -19,11 +19,11 @@ def mine():
     
     start = time.time()
 
-    ### CASO HASHCASH ###
-    # proof = blockchain.proof_of_work(last_block)
+    ### CASO HASHCASH OU SCRYPT ###
+    proof = blockchain.proof_of_work(last_block)
 
     ### CASO PRIMECOIN ###
-    proof = blockchain.proof_of_work()
+    # proof = blockchain.proof_of_work()
     
     end = time.time()
     elapsed = end - start

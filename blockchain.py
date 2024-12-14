@@ -3,6 +3,7 @@ import hashlib
 import json
 import random
 from datetime import datetime
+import os
 
 class Blockchain:
     def __init__(self):
@@ -71,35 +72,57 @@ class Blockchain:
         """
         return self.chain[-1]
     
-    ### ALGORITMO PRIMECOIN ###
-    def proof_of_work(self):
-        """Busca por uma cadeia de Cunningham válida de acordo com a dificuldade."""
-        difficulty = 7
+    ### ALGORITMO SCRYPT ###
+    def proof_of_work(self, last_block):
+        """Busca um hash baseado em scrypt que atenda à dificuldade especificada."""
+        data = f"{last_block['proof']}{self.hash(last_block)}"
+        difficulty = 4
+        prefix = "0" * difficulty
+        proof = 0
         while True:
-            random.seed(datetime.now().timestamp())
-            base_number = random.randint(2, 10**5)
-            chain = self.find_cunningham_chain(base=base_number, length=difficulty)
-            if len(chain) == difficulty:
-                return chain
+            salt = os.urandom(16)
+            result = hashlib.scrypt(
+                f"{data}{proof}".encode(),
+                salt=salt,
+                n=2**14, # parâmetros do scrypt
+                r=8,
+                p=1,
+                dklen=32
+            )
+            if result.hex().startswith(prefix):
+                return proof
+            proof += 1
 
-    def find_cunningham_chain(self, base, length):
-        chain = []
-        while len(chain) < length:
-            if self.is_prime(base):
-                chain.append(base)
-            else:
-                break
-            base = 2 * base + 1
-        return chain
 
-    @staticmethod
-    def is_prime(n):
-        if n < 2:
-            return False
-        for i in range(2, int(n ** 0.5) + 1):
-            if n % i == 0:
-                return False
-        return True
+    ### ALGORITMO PRIMECOIN ###
+    # def proof_of_work(self):
+    #     """Busca por uma cadeia de Cunningham válida de acordo com a dificuldade."""
+    #     difficulty = 7
+    #     while True:
+    #         random.seed(datetime.now().timestamp())
+    #         base_number = random.randint(2, 10**5)
+    #         chain = self.find_cunningham_chain(base=base_number, length=difficulty)
+    #         if len(chain) == difficulty:
+    #             return chain
+
+    # def find_cunningham_chain(self, base, length):
+    #     chain = []
+    #     while len(chain) < length:
+    #         if self.is_prime(base):
+    #             chain.append(base)
+    #         else:
+    #             break
+    #         base = 2 * base + 1
+    #     return chain
+
+    # @staticmethod
+    # def is_prime(n):
+    #     if n < 2:
+    #         return False
+    #     for i in range(2, int(n ** 0.5) + 1):
+    #         if n % i == 0:
+    #             return False
+    #     return True
 
 
 
