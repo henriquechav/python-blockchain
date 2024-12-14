@@ -2,6 +2,7 @@ from time import time
 import hashlib
 import json
 import random
+from datetime import datetime
 
 class Blockchain:
     def __init__(self):
@@ -73,8 +74,9 @@ class Blockchain:
     ### ALGORITMO PRIMECOIN ###
     def proof_of_work(self):
         """Busca por uma cadeia de Cunningham válida de acordo com a dificuldade."""
-        difficulty = 4
+        difficulty = 7
         while True:
+            random.seed(datetime.now().timestamp())
             base_number = random.randint(2, 10**5)
             chain = self.find_cunningham_chain(base=base_number, length=difficulty)
             if len(chain) == difficulty:
