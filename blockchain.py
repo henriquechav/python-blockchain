@@ -82,7 +82,7 @@ class Blockchain:
         while True:
             salt = os.urandom(16)
             result = hashlib.scrypt(
-                f"{data}{proof}".encode(),
+                password=f"{data}{proof}".encode(),
                 salt=salt,
                 n=2**14, # parâmetros do scrypt
                 r=8,
