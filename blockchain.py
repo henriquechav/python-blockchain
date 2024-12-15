@@ -26,7 +26,10 @@ class Blockchain:
             'timestamp': time(),
             'transactions': self.current_transactions,
             'proof': proof,
+            ### CASO HASHCASH OU PRIMECOIN ###
             'previous_hash': previous_hash or self.hash(self.chain[-1]),
+            ### CASO SCRYPT ###
+            # 'previous_hash': previous_hash or hashlib.scrypt(password=f"{self.last_block()['proof']}{proof}".encode()),
         }
 
         # Reseta a atual lista de transações
@@ -75,7 +78,7 @@ class Blockchain:
     ### ALGORITMO SCRYPT ###
     def proof_of_work(self, last_block):
         """Busca um hash baseado em scrypt que atenda à dificuldade especificada."""
-        data = f"{last_block['proof']}{self.hash(last_block)}"
+        data = f"{last_block['proof']}"
         difficulty = 4
         prefix = "0" * difficulty
         proof = 0

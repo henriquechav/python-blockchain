@@ -37,8 +37,11 @@ def mine():
     )
 
     # Forja um novo bloco e o adiciona na cadeia
+    ### CASO HASHCASH OU PRIMECOIN ###
     previous_hash = blockchain.hash(last_block)
     block = blockchain.new_block(proof, previous_hash)
+    ### CASO SCRYPT ###
+    # block = blockchain.new_block(proof)
 
     response = {
         'message': "Novo bloco forjado",
